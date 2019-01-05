@@ -1,6 +1,6 @@
 # Matrix
 
-Matrix header-only library (C++) from numerical optimization and machine learning.   
+Header-only matrix library (C++) from numerical optimization and machine learning.   
 Ease of using is the emphasis of this library. Supported features are as following:
 * templated type
 * copy-free matrix-view
