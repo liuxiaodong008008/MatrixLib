@@ -3,7 +3,7 @@
 Lightweight header-only matrix library (C++) for numerical optimization and machine learning.   
 Ease of using is the emphasis of this library. Supported features are as following:
 * lightweight
-* depency-free
+* dependency-free
 * templated type
 * copy-free matrix-view
 * flexiable matrix element access/selection
