@@ -18,4 +18,4 @@ Detailed examples are listed in [main.cpp](https://github.com/liuxiaodong008008/
 
 Author: Liu Xiaodong (liuxiaodong008008@gmail.com) QQ:2410018191
 
-Contact me if there is an exciting oppotunity.😃 😏 😍 😄 😆 😊
+Contact me if there is an exciting opportunity.😃 😏 😍 😄 😆 😊
