@@ -14,7 +14,7 @@ Ease of using is the emphasis of this library. Supported features are as followi
 
 Detailed examples are listed in main.cpp.
 
-**Please star this project if it is usable for your project.😄 😆 😊  **
+**Please star this project if it is usable for your project. ** 😄 😆 😊
 
 Author: Liu Xiaodong (liuxiaodong008008@gmail.com) QQ:2410018191
 
