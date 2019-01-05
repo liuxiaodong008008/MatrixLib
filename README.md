@@ -1,6 +1,6 @@
 # Matrix
 
-Lightweight header-only matrix library (C++) from numerical optimization and machine learning.   
+Lightweight header-only matrix library (C++) for numerical optimization and machine learning.   
 Ease of using is the emphasis of this library. Supported features are as following:
 * lightweight
 * depency-free
@@ -15,7 +15,8 @@ Ease of using is the emphasis of this library. Supported features are as followi
 Author: Liu Xiaodong (liuxiaodong008008@gmail.com) QQ:2410018191
 
 Examples are listed in main.cpp
-```
+
+```cpp
 #include <iostream>
 #include "matrix.h"
 #include "matrix_operation.h"
@@ -186,85 +187,4 @@ int main() {
     //
     // Matrix: 3x3
     // 30,     36,     36
-    // 12,     600,    18
-    // 18,     24,     24
-    //
-    // Matrix: 3x3
-    // 0.833333,       1,              1
-    // 0.333333,       16.6667,        0.5
-    // 0.5,            0.666667,       0.666667
-    //
-    // Matrix: 3x3
-    // false,  false,  false
-    // false,  true,   false
-    // false,  false,  false
-    //
-    // Matrix: 3x3
-    // true,   true,   true
-    // true,   false,  true
-    // true,   true,   true
-
-    // matrix operations (2)
-    // with numbers
-    cout<<"m+1 "<<(m+1)<<endl;
-    // m+1 Matrix: 3x3
-    // 6,      7,      7
-    // 3,      101,    4
-    // 4,      5,      5
-
-    // matrix operations (3)
-    // copy
-    auto l = m.copy();
-    cout<<"l "<<l<<endl;
-    // l Matrix: 3x3
-    // 5,      6,      6
-    // 2,      100,    3
-    // 3,      4,      4
-
-    // matrix operations (4)
-    // type casting
-    auto lb = (m-6).cast<bool>();
-    cout<<"lb "<<lb<<endl;
-    // lb Matrix: 3x3
-    // true,   false,  false
-    // true,   true,   true
-    // true,   true,   true
-
-    // matrix operations (5)
-    // transpose
-    cout<<"mT "<<m.t()<<endl;
-    // mT Matrix: 3x3
-    // 5,      2,      3
-    // 6,      100,    4
-    // 6,      3,      4
-
-    // matrix operations (6)
-    // broadcasting
-    n = m.colwise()+m.col(0).copy();
-    cout<<"n "<<n<<endl;
-    // n Matrix: 3x3
-    // 10,     11,     11
-    // 4,      102,    5
-    // 6,      7,      7
-
-    // matrix operations (7)
-    // inverse, matmul, any, all, sum, reduce ...
-    cout<<"inverse(m) "<<inverse(m)<<endl;
-    cout<<"matmul(m,m) "<<matmul(m,m)<<endl;
-    cout<<"sum(m) "<<sum(m,REDUCE_DIRECTION::VERTICAL)<<endl;
-    // inverse(m) Matrix: 3x3
-    // 2,      0,      -3
-    // 0.00515464,     0.0103093,      -0.0154639
-    // -1.50515,       -0.0103093,     2.51546
-    //
-    // matmul(m,m) Matrix: 3x3
-    // 55,     654,    72
-    // 219,    10024,  324
-    // 35,     434,    46
-    //
-    // sum(m) Matrix: 1x3
-    // 10,     110,    13
-
-    return 0;
-}
-```
+    // 12,     
