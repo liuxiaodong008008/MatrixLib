@@ -17,3 +17,4 @@ Detailed examples are listed in main.cpp.
 **Please star this project if it is usable for your project.**
 
 Author: Liu Xiaodong (liuxiaodong008008@gmail.com) QQ:2410018191
+Contact me if there is an exciting oppotunity.
