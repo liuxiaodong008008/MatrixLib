@@ -585,7 +585,6 @@ template<typename T>
 template<typename A>
 Matrix<A> IMatrix<T>::cast() const {
     Matrix<A> mat(this->getSize());
-    cout<< typeid(A).name()<<endl;
     int cnt = this->count();
     for(int i=0;i<cnt;i++) {
         mat(i)=(*this)(i);
