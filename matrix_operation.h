@@ -103,6 +103,9 @@ auto reduce(const M1<T1>& mat, const Func& func, REDUCE_DIRECTION rd) {
         case REDUCE_DIRECTION::ALL:
             return reduce_all(mat,func);
             break;
+        default: // note: default is the same as case REDUCE_DIRECTION::ALL
+            return reduce_all(mat, func);
+            break;
     }
 }
 
