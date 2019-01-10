@@ -1,5 +1,7 @@
 # MatrixLib
 
+!!! **NEW**2019.1.11 add LU, LDU, matmul for many matrices, col(from,cnt), row(from,cnt)
+
 Lightweight header-only matrix library (C++) for numerical optimization and machine learning.   
 Ease of using is the emphasis of this library. Supported features are as following:
 * lightweight
