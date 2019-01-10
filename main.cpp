@@ -5,6 +5,28 @@ using namespace std;
 
 int main() {
 
+    {
+        cout<<"New examples: 2019-1-11"<<endl;
+        Matrix<double> m(3, 3, 1.0);
+        m << 1, 2, 3, 4, 6, 7, 3, 4, 5;
+        (m += m.t().copy()) /= 2;
+
+        cout << m << endl;
+
+        auto L = m;
+        auto U = m;
+        auto D = m;
+
+        LDU(m, L, D, U);
+        cout << L << endl;
+        cout << D << endl;
+        cout << U << endl;
+        cout << matmul(L, D, U) << endl;
+
+        cout<<"================================"<<endl;
+    }
+
+
     // declaration
     Matrix<double> m(3,3,0.0);
     cout<<"m "<<m<<endl;

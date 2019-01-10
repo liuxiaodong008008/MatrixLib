@@ -167,6 +167,10 @@ Matrix<decltype(T1()*T2())> matmul(const M1<T1>&m1,const M2<T2>&m2) {
     return ret;
 }
 
+template <typename T1,typename T2, typename  ...Args>
+auto matmul(const T1&m1, const T2&m2, Args ...args) {
+    return matmul(matmul(m1,m2), args...);
+}
 
 template <template <typename> typename M1, typename T1, \
         typename = std::enable_if_t< \
@@ -209,6 +213,124 @@ auto inverse(const M1<T1>& mat) {
 
     auto re = b(Range(Point{n,0},Size{n,n})).copy();
     return re;
+}
+
+template <template <typename> typename M1, typename T1, \
+        typename = std::enable_if_t< \
+                   (!std::is_base_of_v<IsMatrix,   T1>) \
+                && (std::is_base_of_v<IMatrix<T1>, M1<T1>>),int>> \
+auto upper_triangular(const M1<T1>& mat) {
+    int n = mat.rows();
+    Matrix<T1> b(n,n);
+    b=mat;
+
+    for(int r=0;r<n;r++) {
+        T1 max_ = b(r,r);
+        int max_r = r;
+        for(int i=r;i<n;i++)
+            if(max_<b(i,r)) {
+                max_=b(i,r);
+                max_r = i;
+            }
+        if(max_r!=r) swap_row(b,max_r,r);
+        b.row(r)/=max_;
+        for(int i=r+1;i<n;i++) b.row(i)-=b.row(r)*b(i,r);
+    }
+    return b;
+}
+
+template <template <typename> typename M1, typename T1, \
+        typename = std::enable_if_t< \
+                   (!std::is_base_of_v<IsMatrix,   T1>) \
+                && (std::is_base_of_v<IMatrix<T1>, M1<T1>>),int>> \
+auto lower_triangular(const M1<T1>& mat) {
+    int n = mat.rows();
+    Matrix<T1> b(n,n);
+    b=mat;
+
+    for(int r=n-1;r>=0;r--) {
+        T1 max_ = b(r,r);
+        int max_r = r;
+        for(int i=r;i>=0;i--)
+            if(max_<b(i,r)) {
+                max_=b(i,r);
+                max_r = i;
+            }
+        if(max_r!=r) swap_row(b,max_r,r);
+        b.row(r)/=max_;
+        for(int i=r-1;i>=0;i--) b.row(i)-=b.row(r)*b(i,r);
+    }
+    return b;
+}
+
+template <template <typename> typename M1, typename T1, \
+        typename = std::enable_if_t< \
+                   (!std::is_base_of_v<IsMatrix,   T1>) \
+                && (std::is_base_of_v<IMatrix<T1>, M1<T1>>),int>> \
+auto lower_triangular_inverse(const M1<T1>& mat) {
+    assert(mat.rows()==mat.cols());
+    int n = mat.rows();
+    Matrix<T1> b(n,2*n);
+    b(Range(Point{0,0},Size{n,n})) = mat;
+    b(Range(Point{n,0},Size{n,n})) = Matrix<T1>::eye(n);
+
+    for(int r=0;r<n;r++) {
+        b.row(r)/=b(r,r);
+        for(int i=r+1;i<n;i++) b.row(i)-=b.row(r)*b(i,r);
+    }
+
+    auto re = b(Range(Point{n,0},Size{n,n})).copy();
+    return re;
+}
+
+template <template <typename> typename M1, typename T1, \
+        typename = std::enable_if_t< \
+                   (!std::is_base_of_v<IsMatrix,   T1>) \
+                && (std::is_base_of_v<IMatrix<T1>, M1<T1>>),int>> \
+void LU(const M1<T1>& mat, M1<T1>&L, M1<T1>&U) {
+    assert(mat.getSize()==L.getSize());
+    assert(mat.getSize()==U.getSize());
+    int n = mat.rows();
+    Matrix<T1> b(n,2*n);
+    b(Range(Point{0,0},Size{n,n})) = mat;
+    b(Range(Point{n,0},Size{n,n})) = Matrix<T1>::eye(n);
+
+    for(int r=0;r<n;r++) {
+        auto p = b(r,r);
+        b.row(r)/=p;
+        for(int i=r+1;i<n;i++) b.row(i)-=b.row(r)*b(i,r);
+    }
+
+    U = b.col(0,mat.cols());
+    L = lower_triangular_inverse(b.col(mat.cols(),mat.cols()));
+}
+
+template <template <typename> typename M1, typename T1, \
+        typename = std::enable_if_t< \
+                   (!std::is_base_of_v<IsMatrix,   T1>) \
+                && (std::is_base_of_v<IMatrix<T1>, M1<T1>>),int>> \
+void LDU(const M1<T1>& mat, M1<T1>&L, M1<T1>&D, M1<T1>&U) {
+    assert(mat.getSize()==L.getSize());
+    assert(mat.getSize()==D.getSize());
+    assert(mat.getSize()==U.getSize());
+    int n = mat.rows();
+    Matrix<T1> b(n,2*n);
+    b(Range(Point{0,0},Size{n,n})) = mat;
+    b(Range(Point{n,0},Size{n,n})) = D = Matrix<T1>::eye(n);
+
+    for(int r=0;r<n;r++) {
+        auto p = b(r,r);
+        b.row(r)/=p;
+        for(int i=r+1;i<n;i++) b.row(i)-=b.row(r)*b(i,r);
+    }
+
+    U = b.col(0,mat.cols());
+    L = lower_triangular_inverse(b.col(mat.cols(),mat.cols()));
+    for(int r=0;r<n;r++) {
+        auto p = L(r,r);
+        L.col(r)/=p;
+        D(r,r) = p;
+    }
 }
 
 #endif //__MATRIX_OPERATION_H__

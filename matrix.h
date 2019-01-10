@@ -105,6 +105,8 @@ struct Range : HasSize {
     Size size;
 
     Range(const Point &beg, const Size &size) : beg(beg), size(size) {}
+    Range(const Size &size) : beg(0,0), size(size) {}
+    Range(int x,int y,int w,int h) : beg(x,y), size(w,h) {}
 
     Point beg_point() const {return beg;}
     Point end_point() const {return beg+size;}
@@ -213,8 +215,11 @@ struct IMatrix : HasSize,IsMatrix  {
     virtual MatrixView<T> view(Range rng) const { return (*this)(rng); }
     virtual MatrixView<T> view() const { return (*this)(Range{Point{0,0},getSize()}); }
 
-    virtual MatrixView<T> col(int c) const = 0;
-    virtual MatrixView<T> row(int r) const = 0;
+    virtual MatrixView<T> col(int c) const { return (*this)(Range(c,0,1,this->rows())); }
+    virtual MatrixView<T> row(int r) const { return (*this)(Range(0,r,this->cols(),1)); }
+
+    virtual MatrixView<T> col(int from, int cnt) const { return (*this)(Range(from,0,cnt,this->rows())); }
+    virtual MatrixView<T> row(int from, int cnt) const { return (*this)(Range(0,from,this->cols(),cnt)); }
 
     virtual MatrixVectorWiseView<T> colwise() const;
     virtual MatrixVectorWiseView<T> rowwise() const;
@@ -375,6 +380,7 @@ struct MatrixView: IMatrix<T> {
 
     using IMatrix<T>::operator<<;
     using IMatrix<T>::operator();
+    //using IMatrix<T>::operator=;
 
     virtual ~MatrixView() = default;
 
@@ -386,18 +392,21 @@ struct MatrixView: IMatrix<T> {
         return  MatrixView<T>(this->_mat,Range{this->_rng.beg+rng.beg,rng.size});
     }
 
-    virtual MatrixView<T> col(int c) const {
-        return {_mat,Range{{c+_rng.beg.x,_rng.beg.y},{1,_rng.size.h}}};
-    }
-    virtual MatrixView<T> row(int r) const {
-        return {_mat,Range{{_rng.beg.x,r+_rng.beg.y},{_rng.size.w,1}}};
-    }
-
     virtual Size getSize() const { return this->_rng.size; }
 
     friend struct IMatrix<T>;
     friend struct Matrix<T>;
 
+
+    template <typename A>
+    MatrixView<T>& operator=(const IMatrix<A>& mv){
+        assert(this->getSize()==mv.getSize());
+        int cnt = this->count();
+        for(int i=0;i<cnt;i++) {
+            (*this)(i)=mv(i);
+        }
+        return (*this);
+    }
 
     MatrixView<T>& operator=(const MatrixView<T>& mv){
         assert(this->getSize()==mv.getSize());
@@ -408,15 +417,6 @@ struct MatrixView: IMatrix<T> {
         return (*this);
     }
 
-    template <typename A>
-    MatrixView<T>& operator=(const IMatrix<A>& mv) {
-        assert(this->getSize()==mv.getSize());
-        int cnt = this->count();
-        for(int i=0;i<cnt;i++) {
-            (*this)(i)=mv(i);
-        }
-        return (*this);
-    }
     MatrixView(const MatrixView<T>& mv):_mat(mv._mat),_rng(mv._rng) {
     }
     MatrixView(const Matrix<T> &_mat, const Range &_rng)
@@ -462,7 +462,7 @@ struct Matrix:IMatrix<T>{
     T * _data;
 
     using IMatrix<T>::operator<<;
-    using IMatrix<T>::operator=;
+    //using IMatrix<T>::operator=;
     using IMatrix<T>::operator();
 
     T& operator()(int idx) const {
@@ -515,12 +515,6 @@ struct Matrix:IMatrix<T>{
 
     virtual std::string classname() const { return "Matrix"; }
 
-    virtual MatrixView<T> col(int c) const {
-        return {*this,Range{{c,0},{1,_size.h}}};
-    }
-    virtual MatrixView<T> row(int r) const {
-        return {*this,Range{{0,r},{_size.w,1}}};
-    }
 
     T * data() const {
         return _data;
@@ -545,9 +539,27 @@ struct Matrix:IMatrix<T>{
         return *this;
     }
 
+    template <typename A>
+    Matrix<T>& operator=(const IMatrix<A>& _mat){
+        if (this->getSize() != _mat.getSize()) {
+            this->_size = _mat.getSize();
+            if (_data!= nullptr) {
+                delete[] _data;
+                _data = nullptr;
+            }
+            _data = new T[_mat.count()]{T(0)};
+        }
+
+        int cnt = _mat.count();
+        for(int i=0; i<cnt; i++)
+            (*this)(i)=_mat(i);
+
+        return *this;
+    }
+
     Matrix<T>& operator=(const Matrix<T>& _mat){
-        if (this->_size != _mat._size) {
-            this->_size = _mat._size;
+        if (this->getSize() != _mat.getSize()) {
+            this->_size = _mat.getSize();
             if (_data!= nullptr) {
                 delete[] _data;
                 _data = nullptr;
