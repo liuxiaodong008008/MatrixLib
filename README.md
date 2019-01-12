@@ -1,5 +1,6 @@
 # MatrixLib
 
+!!! **NEW**2019.1.12 add QR decomposition, Cholesckey decomposition Gram-Schmit orthog, matrix stack, matrix repeat
 !!! **NEW**2019.1.11 add LU, LDU, matmul for many matrices, col(from,cnt), row(from,cnt)
 
 Lightweight header-only matrix library (C++) for numerical optimization and machine learning.   
