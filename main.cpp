@@ -17,7 +17,6 @@ int main() {
         cout<<R<<endl;
     }
 
-
 //    {
 //        cout<<"New examples: 2019-1-12"<<endl;
 //        Matrix<double> m1(3, 2, 0);
