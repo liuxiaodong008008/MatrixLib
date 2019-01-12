@@ -306,7 +306,7 @@ struct IMatrix : HasSize,IsMatrix  {
     }
 
     static Matrix<T> eye_like(const HasSize& a) {
-        auto mat = Matrix<T>::zeros(a.getSize());
+        auto mat = Matrix<T>::zeros_like(a);
         auto m = std::min(mat.getSize().w,mat.getSize().h);
         for(int i=0;i<m;i++) mat(i,i)=T(1);
         return mat;

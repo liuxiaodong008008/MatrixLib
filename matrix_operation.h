@@ -24,6 +24,13 @@
 #ifndef __MATRIX_OPERATION_H__
 #define __MATRIX_OPERATION_H__
 #include "matrix.h"
+#include <initializer_list>
+
+double epsilon( double e=-1) {
+    static double eps = 1e-12;
+    if(!(e<0)) eps = e;
+    return eps;
+}
 
 template <template <typename> typename M1, \
         typename T1, typename Func,\
@@ -219,6 +226,34 @@ template <template <typename> typename M1, typename T1, \
         typename = std::enable_if_t< \
                    (!std::is_base_of_v<IsMatrix,   T1>) \
                 && (std::is_base_of_v<IMatrix<T1>, M1<T1>>),int>> \
+bool solve(const M1<T1>& A,const M1<T1>& b, M1<T1>& x) {
+    assert(A.rows()==b.rows());
+    assert(A.rows()==x.rows());
+    assert(b.cols()==1);
+    assert(x.cols()==1);
+
+    int n = A.rows();
+    int m = A.cols();
+    Matrix<T1> Ab(n,m+1);
+    Ab(Range(Point{0,0},Size{m,n})) = A;
+    Ab(Range(Point{m,0},Size{1,n})) = b;
+
+    for(int r=0;r<n;r++) {
+        if(Ab(r,r)<T1(epsilon())) return false;
+        Ab.row(r)/=Ab(r,r);
+        for(int i=r+1;i<n;i++) b.row(i)-=b.row(r)*Ab(i,r);
+        for(int i=r-1;i>=0;i--) b.row(i)-=b.row(r)*Ab(i,r);
+    }
+
+    x = Ab(Ab.cols()-1).copy();
+    return true;
+}
+
+
+template <template <typename> typename M1, typename T1, \
+        typename = std::enable_if_t< \
+                   (!std::is_base_of_v<IsMatrix,   T1>) \
+                && (std::is_base_of_v<IMatrix<T1>, M1<T1>>),int>> \
 auto upper_triangular(const M1<T1>& mat) {
     int n = mat.rows();
     Matrix<T1> b(n,n);
@@ -331,6 +366,153 @@ void LDU(const M1<T1>& mat, M1<T1>&L, M1<T1>&D, M1<T1>&U) {
         L.col(r)/=p;
         D(r,r) = p;
     }
+}
+
+template <template <typename> typename M1, typename T1, \
+        typename = std::enable_if_t< \
+                   (!std::is_base_of_v<IsMatrix,   T1>) \
+                && (std::is_base_of_v<IMatrix<T1>, M1<T1>>),int>> \
+bool LL(const M1<T1>& mat, M1<T1>& L) {
+    assert(mat.rows()==mat.cols());
+    assert(L.getSize()==mat.getSize());
+    int n = mat.rows();
+    auto & b = L;
+    b=mat;
+
+    for(int r=0;r<n;r++) {
+        auto p = b(r,r);
+        for(int i=r+1;i<n;i++) b.row(i)-=b.row(r)*(b(i,r)/p);
+        if(p>=0) b.row(r)/=sqrt(p);
+        else return false;
+    }
+
+    L = b.t();
+    return true;
+}
+
+template <template <typename> typename M1, typename T1, \
+        typename = std::enable_if_t< \
+                   (!std::is_base_of_v<IsMatrix,   T1>) \
+                && (std::is_base_of_v<IMatrix<T1>, M1<T1>>),int>> \
+auto GramSchmit(const M1<T1>& mat) {
+    Matrix<T1> Q=mat;
+    int n = mat.rows();
+    int m = mat.cols();
+
+    for(int c=0;c<m;c++) {
+        Q.col(c)/=magnitude(Q.col(c));
+        auto p = matmul(Q.col(c),Q.col(c).t());
+        for(int j=c+1;j<m;j++)
+            Q.col(j)-=matmul(p,Q.col(j));
+    }
+    return Q;
+}
+
+
+template <template <typename> typename M1, typename T1, \
+        typename = std::enable_if_t< \
+                   (!std::is_base_of_v<IsMatrix,   T1>) \
+                && (std::is_base_of_v<IMatrix<T1>, M1<T1>>),int>> \
+auto GramSchmitQR(const M1<T1>& mat, M1<T1>& Q, M1<T1>& R) {
+    assert(mat.rows()==mat.cols());
+    assert(Q.getSize()==mat.getSize());
+    assert(R.getSize()==mat.getSize());
+
+    Q = GramSchmit(mat);
+    R = matmul(Q.t(),mat);
+}
+
+//template <typename T>
+//auto sign(const T&t) {
+//    if(t>=T(0)) return T(1);
+//    else return T(-1);
+//}
+//
+//template <template <typename> typename M1, typename T1, \
+//        typename = std::enable_if_t< \
+//                   (!std::is_base_of_v<IsMatrix,   T1>) \
+//                && (std::is_base_of_v<IMatrix<T1>, M1<T1>>),int>> \
+//auto HouseholderQR(const M1<T1>& mat, M1<T1>& Q, M1<T1>& R) { //todo: form Q
+//    assert(mat.rows()==mat.cols());
+//    assert(Q.getSize()==mat.getSize());
+//    assert(R.getSize()==mat.getSize());
+//
+//    int n = mat.cols();
+//    int m = mat.rows();
+//    R=mat;
+//    for(int k=0;k<n;k++) {
+//        Matrix<T1> x = R.row(k,m-k).col(k).copy();
+//        Matrix<T1> v = x;
+//        v(0) += sign(x(0))*magnitude(x);
+//        v /= magnitude(v);
+//        R.row(k,m-k).col(k,n-k) -= 2*matmul(v,matmul(v.t(),R.row(k,m-k).col(k,n-k)));
+//    }
+//}
+
+
+
+template <template <typename> typename M1, typename T1, \
+        typename = std::enable_if_t< \
+                   (!std::is_base_of_v<IsMatrix,   T1>) \
+                && (std::is_base_of_v<IMatrix<T1>, M1<T1>>),int>> \
+auto det(const M1<T1>& mat) {
+    assert(mat.rows()==mat.cols());
+    int n = mat.rows();
+    auto b = mat;
+
+    T1 ret(1);
+
+    for(int r=0;r<n;r++) {
+        auto p = b(r,r);
+        for(int i=r+1;i<n;i++) b.row(i)-=b.row(r)*(b(i,r)/p);
+        ret*=p;
+    }
+
+    return ret;
+}
+
+
+template <template <typename> typename M1, typename T1, \
+        typename = std::enable_if_t< \
+                   (!std::is_base_of_v<IsMatrix,   T1>) \
+                && (std::is_base_of_v<IMatrix<T1>, M1<T1>>),int>> \
+auto repeat(const M1<T1>& mat, int rows, int cols) {
+    Matrix<T1> R(mat.rows()*rows,mat.cols()*cols,0);
+    for(int r=0;r<rows;r++) {
+        for(int c=0;c<cols;c++) {
+            R.row(r*mat.rows(),mat.rows()).col(c*mat.cols(),mat.cols())
+            =mat;
+        }
+    }
+    return R;
+}
+
+template <template <typename> typename M1, typename T1, \
+        typename = std::enable_if_t< \
+                   (!std::is_base_of_v<IsMatrix,   T1>) \
+                && (std::is_base_of_v<IMatrix<T1>, M1<T1>>),int>> \
+auto stack(const std::initializer_list<std::initializer_list<M1<T1>>>& init) {
+    int rows = 0;
+    int cols = 0;
+
+    for(auto rit=init.begin();rit!=init.end();rit++) {
+        rows+=rit->begin()->rows();
+    }
+    for(auto cit=init.begin()->begin();cit!=init.begin()->end();cit++) {
+        cols+=cit->cols();
+    }
+
+    Matrix<T1> ret(rows,cols,0);
+    int r=0;
+    for(auto rit=init.begin();rit!=init.end();rit++) {
+        int c=0;
+        for(auto cit=rit->begin();cit!=rit->end();cit++) {
+            ret(Range({c,r},cit->getSize())) = *cit;
+            c+=cit->cols();
+        }
+        r+=rit->begin()->rows();
+    }
+    return ret;
 }
 
 #endif //__MATRIX_OPERATION_H__
